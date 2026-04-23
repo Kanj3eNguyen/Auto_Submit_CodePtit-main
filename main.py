@@ -6,7 +6,12 @@ import random
 from dotenv import load_dotenv
 import sys
 import io
-sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
+sys.stdout = io.TextIOWrapper(
+    sys.stdout.buffer,
+    encoding='utf-8',
+    line_buffering=True,
+    write_through=True,
+)
 # Hàm nộp bài
 def submit_assignment(page, content, file_path):
     try:
@@ -84,24 +89,32 @@ def startBot(username, password, login_url, list_url, folder_path, total_pages):
 
                             check = random.randint(1, 6)
                             print(check)
-                            so = random.randint(700, 1200)
+                            so = random.randint(700, 900)
+                            wait_seconds = 0
 
                             if check % 3 != 0:
-                                file_path = f"{fake_path}/{content} - {title}.cpp"  # Thay đổi nếu là ngôn ngữ khác
+                                file_path = f"{fake_path}/{content} - {title}.py"  # Thay đổi nếu là ngôn ngữ khác
                                 submit_assignment(page, content, file_path)
-                                row_index -= 1
-                                time.sleep(so - 300)
+                                #row_index -= 1
+                                wait_seconds = max(0, so - 700)
                             else:
-                                file_path = f"{folder_path}/{content} - {title}.cpp"  # Thay đổi nếu là ngôn ngữ khác
+                                file_path = f"{folder_path}/{content} - {title}.py"  # Thay đổi nếu là ngôn ngữ khác
                                 submit_assignment(page, content, file_path)
-                                time.sleep(so)
-                    row_index += 1
+                                wait_seconds = max(0, so - 845)
+                            print(f"[+] Đã hoàn tất lượt nộp bài cho mã: {content}")
+                            print(f"[*] Đang chờ {wait_seconds} giây trước khi tiếp tục...")
+                            time.sleep(wait_seconds)
+                    row_index += 1 
 
         except Exception as e:
             print("[*] Đã xảy ra lỗi: ", e)
         finally:
             print("[*] Đã đóng trình duyệt.")
-            browser.close()
+            try:
+                if browser.is_connected():
+                    browser.close()
+            except Exception as close_error:
+                print(f"[!] Bỏ qua lỗi khi đóng trình duyệt: {close_error}")
 
 # Thông tin đăng nhập và URL
 load_dotenv()
